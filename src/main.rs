@@ -3,11 +3,11 @@ use xpress::App;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut app = App::new(String::from("Application"));
+    let mut app = App::new("Application");
 
-    app.get("/", |req, res| {
-        // res.send("Welcome to the homepage!");
-        // res.sendFile("index.html");
+    app.get("/", |req, mut res| {
+        res.send("Welcome to the homepage!");
+        // res.sendFile("index.html")?;
         Ok(())
     })?;
 

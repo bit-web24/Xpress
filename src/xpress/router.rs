@@ -7,6 +7,7 @@ use request::Request;
 use response::Response;
 use tokio::io::Result;
 
+#[derive(Clone)]
 pub enum Method {
     Get,
     Post,
@@ -14,18 +15,22 @@ pub enum Method {
     Delete,
 }
 
+#[derive(Clone)]
+
 pub struct Route<F>
 where
-    F: Fn(Request, Response) -> Result<()>,
+    F: Fn(Request, Response) -> Result<()> + Clone,
 {
     pub path: String,
     pub method: Method,
     pub callback: F,
 }
 
+#[derive(Clone)]
+
 pub struct Router<F>
 where
-    F: Fn(Request, Response) -> Result<()>,
+    F: Fn(Request, Response) -> Result<()> + Clone,
 {
     get: HashMap<String, Route<F>>,
     post: HashMap<String, Route<F>>,
@@ -35,7 +40,7 @@ where
 
 impl<F> Router<F>
 where
-    F: Fn(Request, Response) -> Result<()>,
+    F: Fn(Request, Response) -> Result<()> + Clone,
 {
     pub fn new() -> Self {
         Self {

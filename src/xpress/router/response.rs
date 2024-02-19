@@ -12,6 +12,7 @@ impl Response {
 
     pub fn send(&mut self, msg: &str) -> Result<()> {
         self.socket.write_all(msg.as_bytes());
+        // .expect("Error sending message!");
         Ok(())
     }
 }
