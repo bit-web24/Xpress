@@ -1,22 +1,26 @@
+use std::future::Future;
 use std::io::Error;
+use std::sync::Arc;
 
 use crate::xpress::router::{request::Request, response::Response};
 use tokio::io::Result;
 use tokio::{io::AsyncReadExt, net::TcpStream};
 
 use super::router::Router;
-pub struct RequestHandler<F>
+pub struct RequestHandler<F, Fut>
 where
-    F: Fn(Request, Response) -> Result<()> + Send + 'static + Clone,
+    F: Fn(Request, Response) -> Fut + Send + 'static + Clone,
+    Fut: Future<Output = Result<()>> + Send + 'static,
 {
-    routes: Router<F>,
+    routes: Arc<tokio::sync::Mutex<Router<F, Fut>>>,
 }
 
-impl<F> RequestHandler<F>
+impl<F, Fut> RequestHandler<F, Fut>
 where
-    F: Fn(Request, Response) -> Result<()> + Send + 'static + Clone,
+    F: Fn(Request, Response) -> Fut + Send + 'static + Clone,
+    Fut: Future<Output = Result<()>> + Send + 'static,
 {
-    pub fn from(routes: Router<F>) -> Self {
+    pub fn from(routes: Arc<tokio::sync::Mutex<Router<F, Fut>>>) -> Self {
         Self { routes }
     }
 
@@ -61,13 +65,16 @@ where
         let res = Response::new(socket);
 
         match method {
-            "GET" => match self.routes.get(path) {
-                Some(ref route) => (route.callback)(req, res),
-                None => Err(Error::new(
-                    std::io::ErrorKind::NotFound,
-                    "ERROR: 404 page not found!",
-                )),
-            },
+            "GET" => {
+                let mut routes = self.routes.lock().await;
+                match routes.get(path) {
+                    Some(ref route) => (route.callback)(req, res).await,
+                    None => Err(Error::new(
+                        std::io::ErrorKind::NotFound,
+                        "ERROR: 404 page not found!",
+                    )),
+                }
+            }
             // "POST" => {}
             // "PUT" => {}
             // "DELETE" => {}

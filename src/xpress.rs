@@ -1,6 +1,7 @@
+use std::future::Future;
+use std::sync::Arc;
 use tokio::io::Result;
 use tokio::net::{TcpListener, ToSocketAddrs};
-
 mod handler;
 mod router;
 
@@ -8,30 +9,38 @@ use handler::RequestHandler;
 use router::request::Request;
 use router::response::Response;
 use router::{Route, Router};
-pub struct App<'a, F: Fn(Request, Response) -> Result<()> + Send + 'static + Clone> {
+use tokio::sync::Mutex;
+pub struct App<'a, F, Fut>
+where
+    F: Fn(Request, Response) -> Fut + Send + 'static + Clone,
+    Fut: Future<Output = Result<()>> + Send + 'static,
+{
     name: &'a str,
-    routes: Router<F>,
+    routes: Arc<Mutex<Router<F, Fut>>>,
 }
 
-impl<'a, F> App<'a, F>
+impl<'a, F, Fut> App<'a, F, Fut>
 where
-    F: Fn(Request, Response) -> Result<()> + Send + 'static + Clone,
+    F: (Fn(Request, Response) -> Fut) + Send + 'static + Clone + Sync,
+    Fut: Future<Output = Result<()>> + Send + 'static,
 {
     pub fn new(name: &'a str) -> Self {
         Self {
             name,
-            routes: Router::<F>::new(),
+            routes: Arc::new(Mutex::new(Router::<F, Fut>::new())),
         }
     }
 
-    pub fn get(&mut self, route: &str, callback: F) -> Result<()> {
+    pub async fn get(&mut self, route: String, callback: F) -> Result<()> {
         let route = Route {
             path: String::from(route),
             method: router::Method::Get,
             callback,
         };
 
-        self.routes.add(route);
+        let mut routes = self.routes.lock().await;
+
+        routes.add(route);
         Ok(())
     }
 
@@ -51,7 +60,7 @@ where
             let (socket, addr) = listener.accept().await?;
             println!("CONNECTED: {addr}");
 
-            let mut handler = RequestHandler::from(self.routes.clone());
+            let mut handler = RequestHandler::from(Arc::clone(&self.routes));
 
             tokio::spawn(async move {
                 handler.handle(socket).await.expect("Error: handler error");

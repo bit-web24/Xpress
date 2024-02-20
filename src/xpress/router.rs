@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, future::Future};
 
 pub mod request;
 pub mod response;
@@ -17,9 +17,10 @@ pub enum Method {
 
 #[derive(Clone)]
 
-pub struct Route<F>
+pub struct Route<F, Fut>
 where
-    F: Fn(Request, Response) -> Result<()> + Clone,
+    F: Fn(Request, Response) -> Fut + Send + 'static + Clone,
+    Fut: Future<Output = Result<()>> + Send + 'static,
 {
     pub path: String,
     pub method: Method,
@@ -28,19 +29,21 @@ where
 
 #[derive(Clone)]
 
-pub struct Router<F>
+pub struct Router<F, Fut>
 where
-    F: Fn(Request, Response) -> Result<()> + Clone,
+    F: Fn(Request, Response) -> Fut + Send + 'static + Clone,
+    Fut: Future<Output = Result<()>> + Send + 'static,
 {
-    get: HashMap<String, Route<F>>,
-    post: HashMap<String, Route<F>>,
-    put: HashMap<String, Route<F>>,
-    delete: HashMap<String, Route<F>>,
+    get: HashMap<String, Route<F, Fut>>,
+    post: HashMap<String, Route<F, Fut>>,
+    put: HashMap<String, Route<F, Fut>>,
+    delete: HashMap<String, Route<F, Fut>>,
 }
 
-impl<F> Router<F>
+impl<F, Fut> Router<F, Fut>
 where
-    F: Fn(Request, Response) -> Result<()> + Clone,
+    F: Fn(Request, Response) -> Fut + Send + 'static + Clone,
+    Fut: Future<Output = Result<()>> + Send + 'static,
 {
     pub fn new() -> Self {
         Self {
@@ -51,7 +54,7 @@ where
         }
     }
 
-    pub fn add(&mut self, route: Route<F>) {
+    pub fn add(&mut self, route: Route<F, Fut>) {
         match route.method {
             Method::Get => {
                 self.get.insert(route.path.clone(), route);
@@ -68,7 +71,7 @@ where
         }
     }
 
-    pub fn get(&mut self, path: &str) -> Option<&Route<F>> {
+    pub fn get(&mut self, path: &str) -> Option<&Route<F, Fut>> {
         if let Some(route) = self.get.get(path) {
             return Some(route);
         }
