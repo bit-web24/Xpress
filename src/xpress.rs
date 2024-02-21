@@ -21,7 +21,7 @@ where
 
 impl<'a, F, Fut> App<'a, F, Fut>
 where
-    F: (Fn(Request, Response) -> Fut) + Send + 'static + Clone + Sync,
+    F: Fn(Request, Response) -> Fut + Send + 'static + Clone + Sync,
     Fut: Future<Output = Result<()>> + Send + 'static,
 {
     pub fn new(name: &'a str) -> Self {
@@ -31,7 +31,7 @@ where
         }
     }
 
-    pub async fn get(&mut self, route: String, callback: F) -> Result<()> {
+    pub async fn get(&mut self, route: &str, callback: F) -> Result<()> {
         let route = Route {
             path: String::from(route),
             method: router::Method::Get,
