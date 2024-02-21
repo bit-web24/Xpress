@@ -1,20 +1,22 @@
+use super::Method;
+
 pub struct Request {
-    method: String,
+    method: Method,
     path: String,
     version: String,
     headers: Vec<String>,
-    data: String,
+    body: String,
 }
 
 impl Request {
-    pub fn new(req_ln: (String, String, String), headers: Vec<String>, data: String) -> Self {
+    pub fn new(req_ln: (Method, String, String), headers: Vec<String>, body: String) -> Self {
         let (method, path, version) = req_ln;
         Self {
             method,
             path,
             version,
             headers,
-            data,
+            body,
         }
     }
 }

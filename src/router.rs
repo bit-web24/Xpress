@@ -10,6 +10,20 @@ pub enum Method {
     Post,
     Put,
     Delete,
+    Patch,
+    Undefined,
+}
+
+impl Method {
+    pub fn from(method_str: &str) -> Self {
+        match method_str {
+            "GET" => Method::Get,
+            "POST" => Method::Post,
+            "PUT" => Method::Put,
+            "DELETE" => Method::Delete,
+            _ => Method::Undefined,
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -54,6 +68,7 @@ pub struct Router {
     get: HashMap<String, Route>,
     post: HashMap<String, Route>,
     put: HashMap<String, Route>,
+    patch: HashMap<String, Route>,
     delete: HashMap<String, Route>,
 }
 
@@ -63,6 +78,7 @@ impl Router {
             get: HashMap::new(),
             post: HashMap::new(),
             put: HashMap::new(),
+            patch: HashMap::new(),
             delete: HashMap::new(),
         }
     }
@@ -78,9 +94,13 @@ impl Router {
             Method::Put => {
                 self.put.insert(route.path.clone(), route);
             }
+            Method::Patch => {
+                self.patch.insert(route.path.clone(), route);
+            }
             Method::Delete => {
                 self.delete.insert(route.path.clone(), route);
             }
+            _ => (),
         }
     }
 

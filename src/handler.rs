@@ -4,6 +4,8 @@ use std::sync::Arc;
 use tokio::io::Result;
 use tokio::{io::AsyncReadExt, net::TcpStream};
 
+use crate::router::Method;
+
 use super::router::request::Request;
 use super::router::response::Response;
 use super::router::Router;
@@ -32,7 +34,7 @@ impl RequestHandler {
         let mut request_line = req_ln.split_whitespace();
 
         let (method, path, version) = (
-            request_line.next().unwrap(),
+            Method::from(request_line.next().unwrap()),
             request_line.next().unwrap(),
             request_line.next().unwrap(),
         );
@@ -50,14 +52,15 @@ impl RequestHandler {
         let data = lines.collect::<Vec<&str>>().join("\n");
 
         let req = Request::new(
-            (method.to_string(), path.to_string(), version.to_string()),
+            (method.clone(), path.to_string(), version.to_string()),
             headers,
             data,
         );
+
         let res = Response::new(socket);
 
         match method {
-            "GET" => {
+            Method::Get => {
                 let mut routes = self.routes.lock().await;
                 match routes.get(path) {
                     Some(ref route) => (route.callback)(req, res).await,
