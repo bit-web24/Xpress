@@ -1,12 +1,10 @@
-mod xpress;
-use xpress::router::{request::Request, response::Response};
-use xpress::App;
+use xpress::Xpress;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut app = App::new("Application");
+    let mut app = Xpress::new();
 
-    app.get("/", |req: Request, mut res: Response| {
+    app.get("/", |_req, mut res| {
         Box::pin(async move {
             res.send("Welcome to the homepage!").await?;
             Ok(())
@@ -14,7 +12,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     })
     .await?;
 
-    app.get("/about", |req: Request, mut res: Response| {
+    app.get("/about", |_req, mut res| {
         Box::pin(async move {
             res.send("About Page!").await?;
             Ok(())

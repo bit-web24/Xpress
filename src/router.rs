@@ -1,5 +1,5 @@
 use self::{request::Request, response::Response};
-use std::{collections::HashMap, future::Future, sync::Arc};
+use std::{collections::HashMap, sync::Arc};
 use tokio::io::Result;
 pub mod request;
 pub mod response;

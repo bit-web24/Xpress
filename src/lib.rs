@@ -1,4 +1,3 @@
-use std::future::Future;
 use std::sync::Arc;
 use tokio::io::Result;
 use tokio::net::{TcpListener, ToSocketAddrs};
@@ -10,19 +9,13 @@ use router::request::Request;
 use router::response::Response;
 use router::{Route, Router};
 use tokio::sync::Mutex;
-pub struct App {
-    name: String,
+pub struct Xpress {
     routes: Arc<Mutex<Router>>,
 }
 
-impl App
-// where
-//     F: Fn(Request, Response) -> Fut + Send + 'static + Clone + Sync,
-//     Fut: Future<Output = Result<()>> + Send + 'static,
-{
-    pub fn new(name: &str) -> Self {
+impl Xpress {
+    pub fn new() -> Self {
         Self {
-            name: String::from(name),
             routes: Arc::new(Mutex::new(Router::new())),
         }
     }
