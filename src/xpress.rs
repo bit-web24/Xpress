@@ -3,40 +3,42 @@ use std::sync::Arc;
 use tokio::io::Result;
 use tokio::net::{TcpListener, ToSocketAddrs};
 mod handler;
-mod router;
+pub mod router;
 
 use handler::RequestHandler;
 use router::request::Request;
 use router::response::Response;
 use router::{Route, Router};
 use tokio::sync::Mutex;
-pub struct App<'a, F, Fut>
-where
-    F: Fn(Request, Response) -> Fut + Send + 'static + Clone,
-    Fut: Future<Output = Result<()>> + Send + 'static,
-{
-    name: &'a str,
-    routes: Arc<Mutex<Router<F, Fut>>>,
+pub struct App {
+    name: String,
+    routes: Arc<Mutex<Router>>,
 }
 
-impl<'a, F, Fut> App<'a, F, Fut>
-where
-    F: Fn(Request, Response) -> Fut + Send + 'static + Clone + Sync,
-    Fut: Future<Output = Result<()>> + Send + 'static,
+impl App
+// where
+//     F: Fn(Request, Response) -> Fut + Send + 'static + Clone + Sync,
+//     Fut: Future<Output = Result<()>> + Send + 'static,
 {
-    pub fn new(name: &'a str) -> Self {
+    pub fn new(name: &str) -> Self {
         Self {
-            name,
-            routes: Arc::new(Mutex::new(Router::<F, Fut>::new())),
+            name: String::from(name),
+            routes: Arc::new(Mutex::new(Router::new())),
         }
     }
 
-    pub async fn get(&mut self, route: &str, callback: F) -> Result<()> {
-        let route = Route {
-            path: String::from(route),
-            method: router::Method::Get,
-            callback,
-        };
+    pub async fn get<F>(&mut self, path: &str, callback: F) -> Result<()>
+    where
+        F: Fn(
+                Request,
+                Response,
+            )
+                -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<()>> + Send>>
+            + Send
+            + Sync
+            + 'static,
+    {
+        let route = Route::new(path, router::Method::Get, callback);
 
         let mut routes = self.routes.lock().await;
 

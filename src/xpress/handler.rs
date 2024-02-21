@@ -2,25 +2,18 @@ use std::future::Future;
 use std::io::Error;
 use std::sync::Arc;
 
-use crate::xpress::router::{request::Request, response::Response};
 use tokio::io::Result;
 use tokio::{io::AsyncReadExt, net::TcpStream};
 
+use super::router::request::Request;
+use super::router::response::Response;
 use super::router::Router;
-pub struct RequestHandler<F, Fut>
-where
-    F: Fn(Request, Response) -> Fut + Send + 'static + Clone,
-    Fut: Future<Output = Result<()>> + Send + 'static,
-{
-    routes: Arc<tokio::sync::Mutex<Router<F, Fut>>>,
+pub struct RequestHandler {
+    routes: Arc<tokio::sync::Mutex<Router>>,
 }
 
-impl<F, Fut> RequestHandler<F, Fut>
-where
-    F: Fn(Request, Response) -> Fut + Send + 'static + Clone,
-    Fut: Future<Output = Result<()>> + Send + 'static,
-{
-    pub fn from(routes: Arc<tokio::sync::Mutex<Router<F, Fut>>>) -> Self {
+impl RequestHandler {
+    pub fn from(routes: Arc<tokio::sync::Mutex<Router>>) -> Self {
         Self { routes }
     }
 

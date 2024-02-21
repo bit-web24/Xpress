@@ -1,11 +1,8 @@
-use std::{collections::HashMap, future::Future};
-
+use self::{request::Request, response::Response};
+use std::{collections::HashMap, future::Future, sync::Arc};
+use tokio::io::Result;
 pub mod request;
 pub mod response;
-
-use request::Request;
-use response::Response;
-use tokio::io::Result;
 
 #[derive(Clone)]
 pub enum Method {
@@ -16,35 +13,51 @@ pub enum Method {
 }
 
 #[derive(Clone)]
-
-pub struct Route<F, Fut>
-where
-    F: Fn(Request, Response) -> Fut + Send + 'static + Clone,
-    Fut: Future<Output = Result<()>> + Send + 'static,
-{
+pub struct Route {
     pub path: String,
     pub method: Method,
-    pub callback: F,
+    pub callback: Arc<
+        dyn Fn(
+                Request,
+                Response,
+            )
+                -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<()>> + Send>>
+            + Send
+            + Sync
+            + 'static,
+    >,
+}
+
+impl Route {
+    pub fn new<F>(path: &str, method: Method, callback: F) -> Self
+    where
+        F: Fn(
+                Request,
+                Response,
+            )
+                -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<()>> + Send>>
+            + Send
+            + Sync
+            + 'static,
+    {
+        Route {
+            path: String::from(path),
+            method,
+            callback: Arc::new(callback),
+        }
+    }
 }
 
 #[derive(Clone)]
 
-pub struct Router<F, Fut>
-where
-    F: Fn(Request, Response) -> Fut + Send + 'static + Clone,
-    Fut: Future<Output = Result<()>> + Send + 'static,
-{
-    get: HashMap<String, Route<F, Fut>>,
-    post: HashMap<String, Route<F, Fut>>,
-    put: HashMap<String, Route<F, Fut>>,
-    delete: HashMap<String, Route<F, Fut>>,
+pub struct Router {
+    get: HashMap<String, Route>,
+    post: HashMap<String, Route>,
+    put: HashMap<String, Route>,
+    delete: HashMap<String, Route>,
 }
 
-impl<F, Fut> Router<F, Fut>
-where
-    F: Fn(Request, Response) -> Fut + Send + 'static + Clone,
-    Fut: Future<Output = Result<()>> + Send + 'static,
-{
+impl Router {
     pub fn new() -> Self {
         Self {
             get: HashMap::new(),
@@ -54,7 +67,7 @@ where
         }
     }
 
-    pub fn add(&mut self, route: Route<F, Fut>) {
+    pub fn add(&mut self, route: Route) {
         match route.method {
             Method::Get => {
                 self.get.insert(route.path.clone(), route);
@@ -71,7 +84,7 @@ where
         }
     }
 
-    pub fn get(&mut self, path: &str) -> Option<&Route<F, Fut>> {
+    pub fn get(&mut self, path: &str) -> Option<&Route> {
         if let Some(route) = self.get.get(path) {
             return Some(route);
         }
