@@ -5,7 +5,7 @@ pub struct Request {
     pub path: String,
     pub version: String,
     pub headers: Header,
-    pub body: String,
+    pub body: Option<String>,
 }
 
 impl Request {
@@ -16,7 +16,7 @@ impl Request {
             path,
             version,
             headers: Header::from(headers),
-            body,
+            body: Some(body),
         }
     }
 }

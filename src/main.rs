@@ -1,3 +1,4 @@
+use xpress::path::Path;
 use xpress::Xpress;
 
 #[tokio::main]
@@ -6,7 +7,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     app.get("/", |_req, mut res| {
         Box::pin(async move {
-            res.send("Welcome to the homepage!").await?;
+            let path = Path::new("public");
+            res.send_file(path.join("index.html").to_str()).await?;
             Ok(())
         })
     })

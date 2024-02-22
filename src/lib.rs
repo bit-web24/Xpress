@@ -2,6 +2,7 @@ use std::sync::Arc;
 use tokio::io::Result;
 use tokio::net::{TcpListener, ToSocketAddrs};
 mod handler;
+pub mod path;
 mod router;
 
 use handler::RequestHandler;
