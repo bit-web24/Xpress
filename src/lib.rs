@@ -2,13 +2,15 @@ use std::sync::Arc;
 use tokio::io::Result;
 use tokio::net::{TcpListener, ToSocketAddrs};
 mod handler;
-pub mod router;
+mod router;
 
 use handler::RequestHandler;
+use router::method::Method;
 use router::request::Request;
 use router::response::Response;
 use router::{Route, Router};
 use tokio::sync::Mutex;
+
 pub struct Xpress {
     routes: Arc<Mutex<Router>>,
 }
@@ -31,7 +33,7 @@ impl Xpress {
             + Sync
             + 'static,
     {
-        let route = Route::new(path, router::Method::Get, callback);
+        let route = Route::new(path, Method::Get, callback);
 
         let mut routes = self.routes.lock().await;
 

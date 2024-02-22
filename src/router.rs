@@ -1,30 +1,14 @@
 use self::{request::Request, response::Response};
 use std::{collections::HashMap, sync::Arc};
 use tokio::io::Result;
+
+pub mod header;
+pub mod method;
 pub mod request;
 pub mod response;
+pub mod status;
 
-#[derive(Clone)]
-pub enum Method {
-    Get,
-    Post,
-    Put,
-    Delete,
-    Patch,
-    Undefined,
-}
-
-impl Method {
-    pub fn from(method_str: &str) -> Self {
-        match method_str {
-            "GET" => Method::Get,
-            "POST" => Method::Post,
-            "PUT" => Method::Put,
-            "DELETE" => Method::Delete,
-            _ => Method::Undefined,
-        }
-    }
-}
+use method::Method;
 
 #[derive(Clone)]
 pub struct Route {

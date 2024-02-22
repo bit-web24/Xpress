@@ -1,35 +1,53 @@
+use super::header::Header;
+use super::status::Status;
 use tokio::fs;
 use tokio::io::Result;
-
 use tokio::{io::AsyncWriteExt, net::TcpStream};
+
 pub struct Response {
-    pub socket: TcpStream,
+    socket: TcpStream,
+    pub headers: Header,
+    pub status: Status,
 }
 
 impl Response {
     pub fn new(socket: TcpStream) -> Self {
-        Self { socket }
+        Self {
+            socket,
+            headers: Header::new(),
+            status: Status::new(),
+        }
     }
 
     pub async fn send(&mut self, msg: &str) -> Result<()> {
-        let status_line = "HTTP/1.1 200 OK";
-        let headers = format!(
-            "Content-Type: text/plain\r\nContent-Length: {}\r\n",
-            msg.len()
+        self.status.status_code = 200;
+        self.headers.set("Content-Type", "text/plain");
+        self.headers
+            .set("Content-Length", msg.len().to_string().as_str());
+
+        let response = format!(
+            "{}\r\n{}\r\n{}",
+            self.status.to_string(),
+            self.headers.to_string(),
+            msg
         );
-        let response = format!("{}\r\n{}\r\n{}", status_line, headers, msg);
         self.socket.write_all(response.as_bytes()).await?;
         Ok(())
     }
 
     pub async fn send_file(&mut self, path: &str) -> Result<()> {
         let content = fs::read_to_string(path).await?;
-        let status_line = "HTTP/1.1 200 OK";
-        let headers = format!(
-            "Content-Type: text/html\r\nContent-Length: {}\r\n",
-            content.len()
+        self.status.status_code = 200;
+        self.headers.set("Content-Type", "text/html");
+        self.headers
+            .set("Content-Length", content.len().to_string().as_str());
+
+        let response = format!(
+            "{}\r\n{}\r\n{}",
+            self.status.to_string(),
+            self.headers.to_string(),
+            content
         );
-        let response = format!("{}\r\n{}\r\n{}", status_line, headers, content);
         self.socket.write_all(response.as_bytes()).await?;
         Ok(())
     }

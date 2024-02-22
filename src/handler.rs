@@ -4,11 +4,11 @@ use std::sync::Arc;
 use tokio::io::Result;
 use tokio::{io::AsyncReadExt, net::TcpStream};
 
-use crate::router::Method;
-
 use super::router::request::Request;
 use super::router::response::Response;
 use super::router::Router;
+use crate::router::method::Method;
+
 pub struct RequestHandler {
     routes: Arc<tokio::sync::Mutex<Router>>,
 }
