@@ -1,11 +1,14 @@
 use super::Method;
 
+mod header;
+use header::Header;
+
 pub struct Request {
-    method: Method,
-    path: String,
-    version: String,
-    headers: Vec<String>,
-    body: String,
+    pub method: Method,
+    pub path: String,
+    pub version: String,
+    pub headers: Header,
+    pub body: String,
 }
 
 impl Request {
@@ -15,7 +18,7 @@ impl Request {
             method,
             path,
             version,
-            headers,
+            headers: Header::new(headers),
             body,
         }
     }

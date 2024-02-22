@@ -86,19 +86,19 @@ impl Router {
     pub fn add(&mut self, route: Route) {
         match route.method {
             Method::Get => {
-                self.get.insert(route.path.clone(), route);
+                self.get.entry(route.path.clone()).or_insert(route);
             }
             Method::Post => {
-                self.post.insert(route.path.clone(), route);
+                self.post.entry(route.path.clone()).or_insert(route);
             }
             Method::Put => {
-                self.put.insert(route.path.clone(), route);
+                self.put.entry(route.path.clone()).or_insert(route);
             }
             Method::Patch => {
-                self.patch.insert(route.path.clone(), route);
+                self.patch.entry(route.path.clone()).or_insert(route);
             }
             Method::Delete => {
-                self.delete.insert(route.path.clone(), route);
+                self.delete.entry(route.path.clone()).or_insert(route);
             }
             _ => (),
         }
