@@ -49,11 +49,11 @@ impl Route {
 #[derive(Clone)]
 
 pub struct Router {
-    get: HashMap<String, Route>,
-    post: HashMap<String, Route>,
-    put: HashMap<String, Route>,
-    patch: HashMap<String, Route>,
-    delete: HashMap<String, Route>,
+    pub get: HashMap<String, Route>,
+    pub post: HashMap<String, Route>,
+    pub put: HashMap<String, Route>,
+    pub patch: HashMap<String, Route>,
+    pub delete: HashMap<String, Route>,
 }
 
 impl Router {
@@ -88,11 +88,14 @@ impl Router {
         }
     }
 
-    pub fn get(&mut self, path: &str) -> Option<&Route> {
-        if let Some(route) = self.get.get(path) {
-            return Some(route);
+    pub fn get(&mut self, method: &Method, path: &str) -> Option<&Route> {
+        match method {
+            Method::Get => self.get.get(path),
+            Method::Post => self.post.get(path),
+            Method::Put => self.put.get(path),
+            Method::Patch => self.patch.get(path),
+            Method::Delete => self.delete.get(path),
+            _ => None,
         }
-
-        None
     }
 }

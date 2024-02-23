@@ -1,4 +1,3 @@
-use std::io::Error;
 use std::sync::Arc;
 
 use tokio::io::Result;
@@ -23,26 +22,27 @@ impl RequestHandler {
         let n = socket.read(&mut buf).await?;
         let mut request_str = String::from_utf8_lossy(&buf[..n]);
         let req = Request::parse(&mut request_str);
-        let res = Response::new(socket);
+        let mut res = Response::new(socket);
 
         match req.method {
-            Method::Get => {
+            Method::Get | Method::Post | Method::Put | Method::Patch | Method::Delete => {
                 let mut routes = self.routes.lock().await;
-                match routes.get(&req.path) {
-                    Some(ref route) => (route.callback)(req, res).await,
-                    None => Err(Error::new(
-                        std::io::ErrorKind::NotFound,
-                        "ERROR: 404 page not found!",
-                    )),
+                match routes.get(&req.method, &req.path) {
+                    Some(route) => (route.callback)(req, res).await,
+                    None => {
+                        res.status.status_code = 404;
+                        res.send(format!("Page {} Not Found!", req.path).as_str())
+                            .await?;
+                        Ok(())
+                    }
                 }
             }
-            // "POST" => {}
-            // "PUT" => {}
-            // "DELETE" => {}
-            _ => Err(Error::new(
-                std::io::ErrorKind::Other,
-                "ERROR: 404 page not found!",
-            )),
+            _ => {
+                res.status.status_code = 405;
+                res.send(format!("Method {:?} Not Allowed!", req.method).as_str())
+                    .await?;
+                Ok(())
+            }
         }
     }
 }
