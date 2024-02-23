@@ -42,9 +42,81 @@ impl Xpress {
         Ok(())
     }
 
-    // pub fn post(&self, route: &str, callback: F) -> Result<()> {}
-    // pub fn put(&self, route: &str, callback: F) -> Result<()> {}
-    // pub fn delete(&self, route: &str, callback: F) -> Result<()> {}
+    pub async fn post<F>(&mut self, path: &str, callback: F) -> Result<()>
+    where
+        F: Fn(
+                Request,
+                Response,
+            )
+                -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<()>> + Send>>
+            + Send
+            + Sync
+            + 'static,
+    {
+        let route = Route::new(path, Method::Post, callback);
+
+        let mut routes = self.routes.lock().await;
+
+        routes.add(route);
+        Ok(())
+    }
+
+    pub async fn put<F>(&mut self, path: &str, callback: F) -> Result<()>
+    where
+        F: Fn(
+                Request,
+                Response,
+            )
+                -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<()>> + Send>>
+            + Send
+            + Sync
+            + 'static,
+    {
+        let route = Route::new(path, Method::Put, callback);
+
+        let mut routes = self.routes.lock().await;
+
+        routes.add(route);
+        Ok(())
+    }
+
+    pub async fn patch<F>(&mut self, path: &str, callback: F) -> Result<()>
+    where
+        F: Fn(
+                Request,
+                Response,
+            )
+                -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<()>> + Send>>
+            + Send
+            + Sync
+            + 'static,
+    {
+        let route = Route::new(path, Method::Patch, callback);
+
+        let mut routes = self.routes.lock().await;
+
+        routes.add(route);
+        Ok(())
+    }
+
+    pub async fn delete<F>(&mut self, path: &str, callback: F) -> Result<()>
+    where
+        F: Fn(
+                Request,
+                Response,
+            )
+                -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<()>> + Send>>
+            + Send
+            + Sync
+            + 'static,
+    {
+        let route = Route::new(path, Method::Delete, callback);
+
+        let mut routes = self.routes.lock().await;
+
+        routes.add(route);
+        Ok(())
+    }
 
     pub async fn listen<A, B>(&mut self, addr: A, callback: B) -> Result<()>
     where

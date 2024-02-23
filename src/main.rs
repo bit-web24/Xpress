@@ -14,6 +14,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     })
     .await?;
 
+    app.post("/", |req, mut res| {
+        Box::pin(async move {
+            if let Some(data) = req.body {
+                println!("{}", data);
+            } else {
+                res.send("No Data!").await?;
+            }
+
+            Ok(())
+        })
+    })
+    .await?;
+
     app.get("/about", |_req, mut res| {
         Box::pin(async move {
             res.send("About Page!").await?;
