@@ -28,9 +28,7 @@ impl Header {
     }
 
     pub fn set(&mut self, key: &str, value: &str) {
-        self.fields
-            .entry(key.to_string())
-            .or_insert(value.to_string());
+        self.fields.insert(key.to_string(), value.to_string());
     }
 
     pub fn to_string(&self) -> String {

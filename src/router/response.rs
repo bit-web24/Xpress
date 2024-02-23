@@ -12,16 +12,17 @@ pub struct Response {
 
 impl Response {
     pub fn new(socket: TcpStream) -> Self {
+        let mut headers = Header::new();
+        headers.set("Content-Type", "text/plain");
+
         Self {
             socket,
-            headers: Header::new(),
+            headers,
             status: Status::new(),
         }
     }
 
     pub async fn send(&mut self, msg: &str) -> Result<()> {
-        self.status.status_code = 200;
-        self.headers.set("Content-Type", "text/plain");
         self.headers
             .set("Content-Length", msg.len().to_string().as_str());
 
@@ -37,8 +38,20 @@ impl Response {
 
     pub async fn send_file(&mut self, path: &str) -> Result<()> {
         let content = fs::read_to_string(path).await?;
-        self.status.status_code = 200;
-        self.headers.set("Content-Type", "text/html");
+
+        // Determine MIME type from file extension
+        let mime_type = match path.split('.').last().unwrap().trim().into() {
+            Some("html") => "text/html",
+            Some("css") => "text/css",
+            Some("js") => "application/javascript",
+            Some("json") => "application/json",
+            Some("png") => "image/png",
+            Some("jpg") | Some("jpeg") => "image/jpeg",
+            Some("gif") => "image/gif",
+            _ => "application/octet-stream",
+        };
+
+        self.headers.set("Content-Type", mime_type);
         self.headers
             .set("Content-Length", content.len().to_string().as_str());
 
