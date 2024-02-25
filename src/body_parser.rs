@@ -34,6 +34,10 @@ impl BodyParser {
 
     fn _json(&self, req: &mut Request) -> Result<()> {
         if let Some(ref mut body) = req.body {
+            if body.json.is_some() {
+                return Ok(());
+            }
+
             let json_value: Option<Value>;
 
             if let Some(ref data) = body.raw {
