@@ -1,9 +1,14 @@
 use xpress::path::Path;
 use xpress::Xpress;
 
+mod body_parser;
+use body_parser::BodyParser;
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut app = Xpress::new();
+
+    app._use_(BodyParser::json()).await;
 
     app.get("/", |_req, mut res| {
         Box::pin(async move {
@@ -16,8 +21,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     app.post("/", |req, mut res| {
         Box::pin(async move {
-            if let Some(data) = req.body {
-                println!("{}", data);
+            if let Some(body) = req.body {
+                println!("{}", body.raw.unwrap());
+                println!("deser: {}", body.json.unwrap()["key"]);
             } else {
                 res.send("No Data!").await?;
             }

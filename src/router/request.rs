@@ -1,11 +1,14 @@
+use super::body::Body;
 use super::header::Header;
 use super::Method;
+
+#[derive(Clone)]
 pub struct Request {
     pub method: Method,
     pub path: String,
     pub version: String,
     pub headers: Header,
-    pub body: Option<String>,
+    pub body: Option<Body>,
 }
 
 impl Request {
@@ -45,7 +48,11 @@ impl Request {
 
         // Extract data (if any)
         let data = lines.collect::<Vec<&str>>().join("\n");
-        req.body = if data.is_empty() { None } else { Some(data) };
+        req.body = if data.is_empty() {
+            None
+        } else {
+            Some(Body::new(data))
+        };
 
         req
     }

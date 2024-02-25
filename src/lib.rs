@@ -1,9 +1,11 @@
 use std::sync::Arc;
 use tokio::io::Result;
 use tokio::net::{TcpListener, ToSocketAddrs};
+
 mod handler;
+pub mod middleware;
 pub mod path;
-mod router;
+pub mod router;
 
 use handler::RequestHandler;
 use router::method::Method;
@@ -12,15 +14,23 @@ use router::response::Response;
 use router::{Route, Router};
 use tokio::sync::Mutex;
 
+use middleware::Middleware;
+
 pub struct Xpress {
+    middlewares: Vec<Arc<dyn Middleware>>,
     routes: Arc<Mutex<Router>>,
 }
 
 impl Xpress {
     pub fn new() -> Self {
         Self {
+            middlewares: Vec::new(),
             routes: Arc::new(Mutex::new(Router::new())),
         }
+    }
+
+    pub async fn _use_(&mut self, middleware: impl Middleware + 'static) {
+        self.middlewares.push(Arc::new(middleware));
     }
 
     pub async fn get<F>(&mut self, path: &str, callback: F) -> Result<()>
@@ -130,7 +140,9 @@ impl Xpress {
             let (socket, addr) = listener.accept().await?;
             println!("CONNECTED: {addr}");
 
-            let mut handler = RequestHandler::from(Arc::clone(&self.routes));
+            // TODO: use ref of self.middleware instead of cloning
+            let mut handler =
+                RequestHandler::from(Arc::clone(&self.routes), self.middlewares.clone());
 
             tokio::spawn(async move {
                 handler.handle(socket).await.expect("Error: handler error");

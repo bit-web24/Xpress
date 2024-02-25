@@ -6,23 +6,35 @@ use tokio::{io::AsyncReadExt, net::TcpStream};
 use super::router::request::Request;
 use super::router::response::Response;
 use super::router::Router;
+use crate::middleware::Middleware;
 use crate::router::method::Method;
 
 pub struct RequestHandler {
     routes: Arc<tokio::sync::Mutex<Router>>,
+    middlewares: Vec<Arc<dyn Middleware>>,
 }
 
 impl RequestHandler {
-    pub fn from(routes: Arc<tokio::sync::Mutex<Router>>) -> Self {
-        Self { routes }
+    pub fn from(
+        routes: Arc<tokio::sync::Mutex<Router>>,
+        middlewares: Vec<Arc<dyn Middleware>>,
+    ) -> Self {
+        Self {
+            routes,
+            middlewares,
+        }
     }
 
     pub async fn handle(&mut self, mut socket: TcpStream) -> Result<()> {
         let mut buf = [0; 1024];
         let n = socket.read(&mut buf).await?;
         let mut request_str = String::from_utf8_lossy(&buf[..n]);
-        let req = Request::parse(&mut request_str);
+        let mut req = Request::parse(&mut request_str);
         let mut res = Response::new(socket);
+
+        for mw in &self.middlewares {
+            mw.handle(&mut req)?;
+        }
 
         match req.method {
             Method::Get | Method::Post | Method::Put | Method::Patch | Method::Delete => {
