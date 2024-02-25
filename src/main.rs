@@ -23,7 +23,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Box::pin(async move {
             if let Some(body) = req.body {
                 println!("{}", body.raw.unwrap());
-                println!("deser: {}", body.json.unwrap()["key"]);
+                println!("deser: {:?}", body.json);
             } else {
                 res.send("No Data!").await?;
             }

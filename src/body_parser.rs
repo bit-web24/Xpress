@@ -42,7 +42,7 @@ impl BodyParser {
                 json_value = None;
             }
 
-            if json_value.is_none() {
+            if json_value.is_some() {
                 body.json = json_value;
             }
         }
