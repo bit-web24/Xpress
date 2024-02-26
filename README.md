@@ -1,6 +1,6 @@
 # Xpress
 
-Lightweight & Asynchronous Web Server in Rust
+Lightweight & Asynchronous Web Application Framework for Rust
 
 # Usage
 ```rust
