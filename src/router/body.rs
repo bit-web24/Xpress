@@ -5,7 +5,6 @@ pub struct Body {
     pub json: Option<Value>,
     pub url_encoded: Option<Vec<(String, String)>>,
     pub raw: Option<String>,
-    pub buffer: Option<Vec<u8>>,
 }
 
 impl Body {
@@ -14,7 +13,6 @@ impl Body {
             json: None,
             url_encoded: None,
             raw: Some(raw),
-            buffer: None,
         }
     }
 }

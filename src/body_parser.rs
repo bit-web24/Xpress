@@ -6,8 +6,6 @@ use xpress::router::request::Request;
 enum DataTypes {
     Json,
     UrlEncoded,
-    // Raw,
-    // Buffer,
 }
 
 pub struct BodyParser {
@@ -19,8 +17,6 @@ impl Middleware for BodyParser {
         match self.data_type {
             DataTypes::Json => self._json(req),
             DataTypes::UrlEncoded => self._url_encoded(req),
-            // DataTypes::Raw => self._raw(req),
-            // DataTypes::Buffer => self._buffer(req),
         }
     }
 }
@@ -83,20 +79,4 @@ impl BodyParser {
 
         Ok(())
     }
-
-    // pub fn raw() -> Self {
-    //     Self {
-    //         data_type: DataTypes::Raw,
-    //     }
-    // }
-
-    // fn _raw(&self, req: Request) -> Request {}
-
-    // pub fn buffer() -> Self {
-    //     Self {
-    //         data_type: DataTypes::Buffer,
-    //     }
-    // }
-
-    // fn _buffer(&self, req: Request) -> Request {}
 }
