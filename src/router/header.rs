@@ -23,8 +23,8 @@ impl Header {
         Self { fields }
     }
 
-    pub fn get(&self, key: &str) -> &String {
-        self.fields.get(key).unwrap()
+    pub fn get(&self, key: &str) -> Option<&String> {
+        self.fields.get(key)
     }
 
     pub fn set(&mut self, key: &str, value: &str) {

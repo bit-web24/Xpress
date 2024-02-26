@@ -9,6 +9,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut app = Xpress::new();
 
     app._use_(BodyParser::json()).await;
+    app._use_(BodyParser::url_encoded()).await;
 
     app.get("/", |_req, mut res| {
         Box::pin(async move {
@@ -22,8 +23,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     app.post("/", |req, mut res| {
         Box::pin(async move {
             if let Some(body) = req.body {
-                println!("{}", body.raw.unwrap());
-                println!("deser: {:?}", body.json);
+                println!("RAW: {:?}", body.raw.unwrap());
+
+                if let Some(json_data) = body.json {
+                    println!("JSON: {:?}", json_data);
+                }
+
+                if let Some(url_encoded_data) = body.url_encoded {
+                    println!("URL-ENCODED: {:?}", url_encoded_data);
+                }
+
+                let path = Path::new("public");
+                res.send_file(path.join("index.html").to_str()).await?;
             } else {
                 res.send("No Data!").await?;
             }
