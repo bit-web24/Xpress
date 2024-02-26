@@ -1,8 +1,7 @@
+use xpress::middleware::body_parser::BodyParser;
+use xpress::middleware::serve::ServeStatic;
 use xpress::path::Path;
 use xpress::Xpress;
-
-mod body_parser;
-use body_parser::BodyParser;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -10,6 +9,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     app._use_(BodyParser::json()).await;
     app._use_(BodyParser::url_encoded()).await;
+    app._use_(ServeStatic::dir("public")).await;
 
     app.get("/", |_req, mut res| {
         Box::pin(async move {

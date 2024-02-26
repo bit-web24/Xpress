@@ -1,7 +1,7 @@
+use super::Middleware;
+use crate::router::request::Request;
 use serde_urlencoded;
 use tokio::io::Result;
-use xpress::middleware::Middleware;
-use xpress::router::request::Request;
 
 enum DataTypes {
     Json,
