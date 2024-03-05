@@ -1,5 +1,5 @@
 use super::Middleware;
-use crate::router::request::Request;
+use crate::router::{request::Request, Router};
 use serde_urlencoded;
 use tokio::io::Result;
 
@@ -13,7 +13,7 @@ pub struct BodyParser {
 }
 
 impl Middleware for BodyParser {
-    fn handle(&self, req: &mut Request) -> Result<()> {
+    fn handle(&self, _routes: &mut Router, req: &mut Request) -> Result<()> {
         match self.data_type {
             DataTypes::Json => self._json(req),
             DataTypes::UrlEncoded => self._url_encoded(req),

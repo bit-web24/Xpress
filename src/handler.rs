@@ -33,7 +33,10 @@ impl RequestHandler {
         let mut res = Response::new(socket);
 
         for mw in &self.middlewares {
-            mw.handle(&mut req)?;
+            // let routes = self.routes.lock().await;
+            // mw.handle(routes.clone(), &mut req)?;
+            let routes = &mut *self.routes.lock().await;
+            mw.handle(routes, &mut req)?;
         }
 
         match req.method {
