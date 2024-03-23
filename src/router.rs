@@ -1,7 +1,3 @@
-use self::{request::Request, response::Response};
-use std::{collections::HashMap, sync::Arc};
-use tokio::io::Result;
-
 pub mod body;
 pub mod header;
 pub mod method;
@@ -9,7 +5,10 @@ pub mod request;
 pub mod response;
 pub mod status;
 
+use self::{request::Request, response::Response};
 use method::Method;
+use std::{collections::HashMap, sync::Arc};
+use tokio::io::Result;
 
 #[derive(Clone)]
 pub struct Route {

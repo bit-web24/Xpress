@@ -1,20 +1,18 @@
-use std::sync::Arc;
-use tokio::io::Result;
-use tokio::net::{TcpListener, ToSocketAddrs};
-
 mod handler;
 pub mod middleware;
 pub mod path;
 pub mod router;
 
 use handler::RequestHandler;
+use middleware::Middleware;
 use router::method::Method;
 use router::request::Request;
 use router::response::Response;
 use router::{Route, Router};
+use std::sync::Arc;
+use tokio::io::Result;
+use tokio::net::{TcpListener, ToSocketAddrs};
 use tokio::sync::Mutex;
-
-use middleware::Middleware;
 
 pub struct Xpress {
     middlewares: Vec<Arc<dyn Middleware>>,

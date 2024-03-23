@@ -1,5 +1,4 @@
 use std::time::Duration;
-
 use tokio::time::sleep;
 use xpress::middleware::body_parser::BodyParser;
 use xpress::middleware::serve::ServeStatic;
