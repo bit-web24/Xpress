@@ -85,7 +85,6 @@ impl Router {
             Method::Delete => {
                 self.delete.entry(route.path.clone()).or_insert(route);
             }
-            _ => (),
         }
     }
 
@@ -96,7 +95,6 @@ impl Router {
             Method::Put => self.put.get(path),
             Method::Patch => self.patch.get(path),
             Method::Delete => self.delete.get(path),
-            _ => None,
         }
     }
 }

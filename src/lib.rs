@@ -140,15 +140,12 @@ impl Xpress {
             let (socket, addr) = listener.accept().await?;
             println!("CONNECTED: {addr}");
 
-            // TODO: use ref of self.middleware instead of cloning
             let mut handler =
                 RequestHandler::from(Arc::clone(&self.routes), self.middlewares.clone());
-            handler.handle(socket).await.expect("Error: handler error");
 
             tokio::spawn(async move {
-                // handler.handle(socket).await.expect("Error: handler error");
-            })
-            .await?;
+                handler.handle(socket).await.expect("Error: handler error");
+            });
         }
     }
 }
