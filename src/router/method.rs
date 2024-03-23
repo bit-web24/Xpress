@@ -5,17 +5,18 @@ pub enum Method {
     Put,
     Delete,
     Patch,
-    Undefined,
 }
 
 impl Method {
-    pub fn from(method_str: &str) -> Self {
-        match method_str {
+    pub fn from(method_str: &str) -> Option<Self> {
+        let method = match method_str {
             "GET" => Method::Get,
             "POST" => Method::Post,
             "PUT" => Method::Put,
             "DELETE" => Method::Delete,
-            _ => Method::Undefined,
-        }
+            _ => return None,
+        };
+
+        Some(method)
     }
 }

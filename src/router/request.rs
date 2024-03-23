@@ -4,7 +4,7 @@ use super::Method;
 
 #[derive(Clone)]
 pub struct Request {
-    pub method: Method,
+    pub method: Option<Method>,
     pub path: String,
     pub version: String,
     pub headers: Header,
@@ -14,7 +14,7 @@ pub struct Request {
 impl Request {
     pub fn new() -> Self {
         Self {
-            method: Method::Undefined,
+            method: None,
             path: "".to_string(),
             version: "".to_string(),
             headers: Header::new(),

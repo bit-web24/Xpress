@@ -1,3 +1,6 @@
+use std::time::Duration;
+
+use tokio::time::sleep;
 use xpress::middleware::body_parser::BodyParser;
 use xpress::middleware::serve::ServeStatic;
 use xpress::path::Path;
@@ -46,6 +49,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     app.get("/about", |_req, mut res| {
         Box::pin(async move {
+            sleep(Duration::from_secs(4)).await;
             res.send("About Page!").await?;
             Ok(())
         })

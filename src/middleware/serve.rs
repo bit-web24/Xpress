@@ -32,8 +32,11 @@ impl ServeStatic {
 
 impl Middleware for ServeStatic {
     fn handle(&self, routes: &mut Router, req: &mut Request) -> Result<()> {
-        if let method::Method::Get = req.method {
-            if routes.get(&req.method, req.path.as_str()).is_none() {
+        if let Some(method::Method::Get) = req.method {
+            if routes
+                .get(&req.method.as_ref().unwrap(), req.path.as_str())
+                .is_none()
+            {
                 let sanitized_path = Self::sanitize_path(req.path.as_str());
                 let file_path = Path::new(&self.root).join(&sanitized_path);
 
@@ -45,7 +48,7 @@ impl Middleware for ServeStatic {
 
                 let route = Route::new(
                     file_path.to_str().unwrap(),
-                    req.method.clone(),
+                    req.method.clone().unwrap(),
                     |reqst, mut res| {
                         {
                             Box::pin(async move {

@@ -1,3 +1,4 @@
+use std::future::Future;
 use std::sync::Arc;
 
 use tokio::io::Result;
@@ -7,7 +8,6 @@ use super::router::request::Request;
 use super::router::response::Response;
 use super::router::Router;
 use crate::middleware::Middleware;
-use crate::router::method::Method;
 
 pub struct RequestHandler {
     routes: Arc<tokio::sync::Mutex<Router>>,
@@ -33,31 +33,44 @@ impl RequestHandler {
         let mut res = Response::new(socket);
 
         for mw in &self.middlewares {
-            // let routes = self.routes.lock().await;
-            // mw.handle(routes.clone(), &mut req)?;
-            let routes = &mut *self.routes.lock().await;
+            let routes = &mut self.routes.lock().await;
             mw.handle(routes, &mut req)?;
         }
 
-        match req.method {
-            Method::Get | Method::Post | Method::Put | Method::Patch | Method::Delete => {
-                let mut routes = self.routes.lock().await;
-                match routes.get(&req.method, &req.path) {
-                    Some(route) => (route.callback)(req, res).await,
-                    None => {
-                        res.status.status_code = 404;
-                        res.send(format!("Page {} Not Found!", req.path).as_str())
-                            .await?;
-                        Ok(())
-                    }
-                }
-            }
-            _ => {
-                res.status.status_code = 405;
-                res.send(format!("Method {:?} Not Allowed!", req.method).as_str())
-                    .await?;
-                Ok(())
-            }
+        let method = req.method.as_ref();
+
+        if method.is_none() {
+            res.status.status_code = 405;
+            res.send(format!("Method {:?} Not Allowed!", method.unwrap()).as_str())
+                .await?;
+            return Ok(());
         }
+
+        let mut routes = self.routes.lock().await;
+        let route = routes.get(&method.unwrap(), &req.path);
+        let callback: Arc<
+            dyn Fn(
+                    Request,
+                    Response,
+                ) -> std::pin::Pin<
+                    Box<dyn Future<Output = std::prelude::v1::Result<(), std::io::Error>> + Send>,
+                > + Send
+                + Sync,
+        >;
+
+        if route.is_none() {
+            res.status.status_code = 404;
+            res.send(format!("Page {} Not Found!", req.path).as_str())
+                .await?;
+            return Ok(());
+        }
+
+        callback = route.unwrap().callback.clone();
+
+        tokio::spawn(async move {
+            callback(req, res).await.expect("Error in request handler!");
+        });
+
+        Ok(())
     }
 }
